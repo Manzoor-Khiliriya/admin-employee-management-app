@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import logo from '../../../logo.png';
-import { API_URL } from '../../../utils/config';
+import { loginUser } from '../../../services/authApi';
 
 export default function Login() {
     const navigate = useNavigate();
-    const [loginData, setLoginData] = useState({ username: "", password: "" });
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [loginData, setLoginData] = useState({ username: '', password: '' });
     const [fieldErrors, setFieldErrors] = useState({});
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         localStorage.clear();
@@ -16,27 +16,20 @@ export default function Login() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setLoginData({
-            ...loginData,
-            [name]: value
-        });
-        setFieldErrors({ ...fieldErrors, [name]: "" });
+        setLoginData((prev) => ({ ...prev, [name]: value }));
+        setFieldErrors((prev) => ({ ...prev, [name]: '' }));
     };
 
     const validateFields = () => {
         const errors = {};
-        if (!loginData.username.trim()) {
-            errors.username = "Username is required.";
-        }
-        if (!loginData.password) {
-            errors.password = "Password is required.";
-        }
+        if (!loginData.username.trim()) errors.username = 'Username is required.';
+        if (!loginData.password) errors.password = 'Password is required.';
         return errors;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError("");
+        setError('');
         setLoading(true);
 
         const errors = validateFields();
@@ -47,33 +40,12 @@ export default function Login() {
         }
 
         try {
-            const response = await fetch(`${API_URL}/authenticate/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(loginData)
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                setError(result.error || "Login failed");
-                setLoading(false);
-                return;
-            }
-
-            localStorage.setItem('token', result.data.token);
-            localStorage.setItem('username', result.data.username);
-            navigate('/home');
-        } catch (error) {
-            console.error('Sign in failed', error.message);
-            setError("An error occurred. Please try again later.");
+            await loginUser(loginData, navigate);
+        } catch (err) {
+            setError(err.message || 'Login failed. Please try again.');
         } finally {
             setLoading(false);
         }
-    };
-
-    const navigateToSignUp = () => {
-        navigate('/sign-up');
     };
 
     return (
@@ -87,8 +59,8 @@ export default function Login() {
             <main className="flex-grow-1 d-flex justify-content-center align-items-center">
                 <div className="col-11 col-md-6 col-lg-4 bg-white shadow rounded p-4">
                     <h2 className="text-center mb-4">Login</h2>
-                    <form onSubmit={handleSubmit} noValidate>
 
+                    <form onSubmit={handleSubmit} noValidate>
                         <div className="form-floating mb-3">
                             <input
                                 type="text"
@@ -98,8 +70,9 @@ export default function Login() {
                                 value={loginData.username}
                                 onChange={handleChange}
                                 placeholder="Username"
+                                style={{ backgroundColor: 'white' }}
                             />
-                            <label htmlFor="floatingInput">Username</label>
+                            <label htmlFor="floatingUsername">Username</label>
                             {fieldErrors.username && (
                                 <div className="invalid-feedback">{fieldErrors.username}</div>
                             )}
@@ -108,12 +81,12 @@ export default function Login() {
                         <div className="form-floating mb-3">
                             <input
                                 type="password"
-                                className={`form-control ${fieldErrors.password ? 'is-invalid' : ''}`}
                                 id="floatingPassword"
                                 name="password"
+                                className={`form-control ${fieldErrors.password ? 'is-invalid' : ''}`}
+                                placeholder="Password"
                                 value={loginData.password}
                                 onChange={handleChange}
-                                placeholder="Password"
                             />
                             <label htmlFor="floatingPassword">Password</label>
                             {fieldErrors.password && (
@@ -121,24 +94,23 @@ export default function Login() {
                             )}
                         </div>
 
-                        {error && <div className="alert alert-danger mt-3">{error}</div>}
+                        {error && <div className="alert alert-danger">{error}</div>}
 
                         <button
                             type="submit"
                             className="btn btn-primary w-100 mt-3"
                             disabled={loading}
                         >
-                            {loading ? "Logging in..." : "Login"}
+                            {loading ? 'Logging in...' : 'Login'}
                         </button>
 
-                        {/* Sign-Up Button */}
                         <button
                             type="button"
                             className="btn btn-success w-100 mt-2"
-                            onClick={navigateToSignUp}
+                            onClick={() => navigate('/sign-up')}
                             disabled={loading}
                         >
-                            {loading ? "Loading..." : "Sign Up"}
+                            {loading ? 'Loading...' : 'Sign Up'}
                         </button>
                     </form>
                 </div>

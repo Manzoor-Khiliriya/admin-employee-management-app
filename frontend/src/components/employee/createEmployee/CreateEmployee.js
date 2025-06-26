@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../header/Header';
+import { createEmployee } from '../../../services/employeeApi';
 
 export default function CreateEmployee() {
     const navigate = useNavigate();
@@ -19,64 +20,36 @@ export default function CreateEmployee() {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-
         if (type === 'checkbox' && name === 'courses') {
-            setEmployeeData((prevState) => {
-                const updatedCourses = checked
-                    ? [...prevState.courses, value]
-                    : prevState.courses.filter((course) => course !== value);
-                return { ...prevState, courses: updatedCourses };
+            setEmployeeData((prev) => {
+                const updated = checked
+                    ? [...prev.courses, value]
+                    : prev.courses.filter((c) => c !== value);
+                return { ...prev, courses: updated };
             });
         } else {
-            setEmployeeData({ ...employeeData, [name]: value });
+            setEmployeeData((prev) => ({ ...prev, [name]: value }));
         }
     };
 
     const handleFileChange = (e) => {
-        const fileInput = e.target;
-        const file = fileInput.files[0];
-        const allowedExtensions = /(\.jpg|\.jpeg|\.png)$/i;
-
-        if (!allowedExtensions.exec(file.name)) {
+        const file = e.target.files[0];
+        const allowed = /(\.jpg|\.jpeg|\.png)$/i;
+        if (!allowed.exec(file.name)) {
             setError('Please upload a valid image file (.jpg, .jpeg, .png).');
-            fileInput.value = '';
+            e.target.value = '';
             return;
         }
-
         setError(null);
-        setEmployeeData({ ...employeeData, image: file });
+        setEmployeeData((prev) => ({ ...prev, image: file }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const formData = new FormData();
-        for (const key in employeeData) {
-            formData.append(key, employeeData[key]);
-        }
-
         try {
-            const response = await fetch('http://localhost:5000/api/v1/employees', {
-                method: 'POST',
-                headers: {
-                    authorization: `Bearer ${token}`,
-                },
-                body: formData,
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                console.log(result.error);
-                setError(result.error || 'An unexpected error occurred.');
-                return;
-            }
-
-            setError(null);
-            navigate('/employees');
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            setError('Failed to submit the form. Please try again later.');
+            await createEmployee(employeeData, token, navigate);
+        } catch (err) {
+            setError(err.message);
         }
     };
 
@@ -233,7 +206,7 @@ export default function CreateEmployee() {
                     <button type="submit" className="btn btn-success w-100 mb-2">
                         Submit
                     </button>
-                    <button  className="btn btn-secondary w-100" onClick={() => {navigate('/employees')}}>Back to employees list</button>
+                    <button className="btn btn-secondary w-100" onClick={() => { navigate('/employees') }}>Back to employees list</button>
                 </form>
             </div>
         </div>

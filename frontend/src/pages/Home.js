@@ -9,13 +9,18 @@ export default function Home() {
       <Header />
 
       {/* Main Content */}
-      <main className="flex-grow-1 d-flex align-items-center justify-content-center bg-light">
-        <div className="text-center p-5 bg-white rounded shadow">
-          <h2 className="display-4 fw-bold text-primary">Welcome to the Admin Panel</h2>
-          <p className="mt-3 text-secondary">
-            Manage your application efficiently and effectively from here.
+      <main className="flex-grow-1 d-flex align-items-center justify-content-center bg-light px-3">
+        <section
+          className="text-center bg-white rounded shadow-lg p-4 p-md-5 w-100"
+          style={{ maxWidth: '600px' }}
+        >
+          <h1 className="fw-bold text-primary mb-3 fs-2 fs-md-1">
+            Welcome to the Admin Panel
+          </h1>
+          <p className="lead fs-6 fs-md-5">
+            Manage users, view reports, and control all aspects of your application with ease.
           </p>
-        </div>
+        </section>
       </main>
 
       {/* Footer */}
